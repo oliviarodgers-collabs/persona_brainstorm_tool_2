@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Persona Branching Tool - Suno</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #0D0D0D;
+            color: #FFFFFF;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: #1A1111;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border-left: 4px solid #FD6E26;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            color: #FFFFFF;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #999999;
+        }
+
+        .controls {
+            background: #1A1111;
+            padding: 20px 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 12px;
+            color: #999999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        select, button {
+            font-family: inherit;
+            font-size: 14px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid #333333;
+            background: #0D0D0D;
+            color: #FFFFFF;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        select {
+            min-width: 200px;
+        }
+
+        select:hover, select:focus {
+            border-color: #FD6E26;
+            outline: none;
+        }
+
+        button {
+            border: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(253, 110, 38, 0.3);
+        }
+
+        .btn-persona {
+            background: linear-gradient(135deg, #FD6E26, #FA2624);
+        }
+
+        .btn-use-case {
+            background: linear-gradient(135deg, #FD2F97, #FA2624);
+        }
+
+        .btn-problem {
+            background: linear-gradient(135deg, #FFD43D, #FD6E26);
+        }
+
+        .btn-clear {
+            background: #333333;
+            padding: 8px 14px;
+            font-size: 12px;
+        }
+
+        .instructions {
+            background: #1A1111;
+            padding: 20px 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #FFD43D;
+        }
+
+        .instructions h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #FFD43D;
+        }
+
+        .instructions p {
+            font-size: 13px;
+            color: #CCCCCC;
+            line-height: 1.6;
+        }
+
+        .canvas-container {
+            background: #1A1111;
+            border-radius: 12px;
+            padding: 30px;
+            min-height: 600px;
+            position: relative;
+            overflow: auto;
+        }
+
+        .node {
+            position: absolute;
+            padding: 15px 18px;
+            border-radius: 10px;
+            cursor: move;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            min-width: 180px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .node:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .node.root {
+            background: #0D0D0D;
+            border: 3px solid #FFFFFF;
+            padding: 20px 25px;
+            font-size: 16px;
+            font-weight: 700;
+            min-width: 220px;
+        }
+
+        .node.persona {
+            background: #0D0D0D;
+            border: 3px solid #FD6E26;
+        }
+
+        .node.use-case {
+            background: #0D0D0D;
+            border: 3px solid #FD2F97;
+        }
+
+        .node.problem {
+            background: #0D0D0D;
+            border: 2px dashed #FFD43D;
+        }
+
+        .node-title {
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 8px;
+            color: #FFFFFF;
+        }
+
+        .node-detail {
+            font-size: 12px;
+            color: #999999;
+            line-height: 1.5;
+        }
+
+        .node-actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .node-btn {
+            padding: 6px 12px;
+            font-size: 11px;
+            border-radius: 6px;
+            background: rgba(253, 110, 38, 0.15);
+            color: #FD6E26;
+            border: 1px solid rgba(253, 110, 38, 0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .node-btn:hover {
+            background: rgba(253, 110, 38, 0.25);
+            border-color: #FD6E26;
+        }
+
+        .delete-btn {
+            background: rgba(250, 38, 36, 0.15);
+            color: #FA2624;
+            border-color: rgba(250, 38, 36, 0.3);
+        }
+
+        .delete-btn:hover {
+            background: rgba(250, 38, 36, 0.25);
+            border-color: #FA2624;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1A1111;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            border: 2px solid #FD6E26;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: #FFFFFF;
+            font-weight: 700;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            color: #FFFFFF;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background: #0D0D0D;
+            border: 1px solid #333333;
+            border-radius: 8px;
+            color: #FFFFFF;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #FD6E26;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            padding: 12px;
+        }
+
+        .legend {
+            background: #1A1111;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-box {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+        }
+
+        .legend-box.root {
+            background: #0D0D0D;
+            border: 2px solid #FFFFFF;
+        }
+
+        .legend-box.persona {
+            background: #0D0D0D;
+            border: 2px solid #FD6E26;
+        }
+
+        .legend-box.use-case {
+            background: #0D0D0D;
+            border: 2px solid #FD2F97;
+        }
+
+        .legend-box.problem {
+            background: #0D0D0D;
+            border: 2px dashed #FFD43D;
+        }
+
+        .legend-text {
+            font-size: 12px;
+            color: #999999;
+        }
+
+        .segment-info {
+            background: rgba(253, 110, 38, 0.1);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 3px solid #FD6E26;
+        }
+
+        .segment-info-title {
+            font-weight: 700;
+            font-size: 14px;
+            color: #FD6E26;
+            margin-bottom: 8px;
+        }
+
+        .segment-info-text {
+            font-size: 12px;
+            color: #CCCCCC;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎵 Persona Branching Tool</h1>
+        <p class="subtitle">Transform user segments into testable personas with clear use cases and problems</p>
+    </div>
+
+    <div class="instructions">
+        <h3>💡 Quick Start</h3>
+        <p>
+            1) Select your assigned segment • 2) Click "Add Persona" and fill in demographics • 
+            3) Click on a persona to add use cases • 4) Add what problem we're solving for each use case • 
+            5) Drag nodes to organize your tree • <strong>NO LIMITS—branch as much as you want!</strong>
+        </p>
+    </div>
+
+    <div class="instructions" style="border-left-color: #FD6E26;">
+        <h3>👥 Team Assignments</h3>
+        <p>
+            <strong>Franklin & Richard:</strong> Music Hobby • 
+            <strong>Anthony:</strong> Content Creator • 
+            <strong>Alina:</strong> Creative Pro • 
+            <strong>Claire:</strong> Lyricist • 
+            <strong>Olivia:</strong> Non-Creator
+        </p>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>Select Segment</label>
+            <select id="segmentSelect">
+                <option value="">Choose your assigned segment...</option>
+                <option value="music-hobby">Music Hobby (30% of users)</option>
+                <option value="content-creator">Content Creator (16% of users)</option>
+                <option value="creative-pro">Creative Pro (12% of users)</option>
+                <option value="lyricist">Lyricist (17% of users)</option>
+                <option value="non-creator">Non-Creator (12% of users)</option>
+            </select>
+        </div>
+        <button class="btn-persona" id="addPersonaBtn">+ Add Persona</button>
+        <button class="btn-clear" id="clearCanvasBtn">Clear Canvas</button>
+    </div>
+
+    <div id="segmentInsights"></div>
+
+    <div class="canvas-container" id="canvas">
+        <svg id="connections" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></svg>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-box root"></div>
+            <span class="legend-text">Segment (root)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-box persona"></div>
+            <span class="legend-text">Persona</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-box use-case"></div>
+            <span class="legend-text">Use Case</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-box problem"></div>
+            <span class="legend-text">Problem We're Solving</span>
+        </div>
+    </div>
+
+    <div class="modal" id="personaModal">
+        <div class="modal-content">
+            <div class="modal-title">Create New Persona</div>
+            <div class="form-group">
+                <label>Persona Name *</label>
+                <input type="text" id="personaName" placeholder="e.g., Weekend Dad Producer">
+            </div>
+            <div class="form-group">
+                <label>Age Range *</label>
+                <input type="text" id="personaAge" placeholder="e.g., 35-45">
+            </div>
+            <div class="form-group">
+                <label>Experience Level</label>
+                <input type="text" id="personaExp" placeholder="e.g., Beginner, Former musician">
+            </div>
+            <div class="form-group">
+                <label>Key Characteristic</label>
+                <input type="text" id="personaChar" placeholder="e.g., Time-starved, Budget-conscious">
+            </div>
+            <div class="modal-actions">
+                <button id="cancelPersonaBtn" style="background: #333333;">Cancel</button>
+                <button id="savePersonaBtn" class="btn-persona">Create Persona</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="useCaseModal">
+        <div class="modal-content">
+            <div class="modal-title">Add Use Case</div>
+            <div class="form-group">
+                <label>Use Case Description *</label>
+                <textarea id="useCaseDesc" placeholder="What specific job is this persona hiring Suno for?&#10;e.g., Make birthday songs for kids, Create background music for videos"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button id="cancelUseCaseBtn" style="background: #333333;">Cancel</button>
+                <button id="saveUseCaseBtn" class="btn-use-case">Add Use Case</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="problemModal">
+        <div class="modal-content">
+            <div class="modal-title">Add Problem We're Solving</div>
+            <div class="form-group">
+                <label>What problem does Suno solve for this use case? *</label>
+                <textarea id="problemText" placeholder="What pain point or barrier are we removing?&#10;e.g., 'No time for traditional studio work', 'Can't afford music production', 'Lyrics sitting unused for years'"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button id="cancelProblemBtn" style="background: #333333;">Cancel</button>
+                <button id="saveProblemBtn" class="btn-problem">Add Problem</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let nodes = [];
+        let nodeIdCounter = 0;
+        let currentParent = null;
+        let draggedNode = null;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        const segmentData = {
+            'music-hobby': {
+                name: 'Music Hobby',
+                size: '30%',
+                job: 'Expression/fun',
+                activation: 'Slow (28% never routine)',
+                topMotivation: 'Wanted to experiment with AI (39%)',
+                insights: 'Largest segment but weakest retention. Need to teach them recurring use cases like birthday songs, thank you notes, or personalized playlists.',
+                examples: [
+                    '• "I create music for artistic improvement and express my feelings"',
+                    '• "Wanted to create a hype song for my son\'s hockey team"',
+                    '• "Make songs for my kid when needed for specific topics"'
+                ]
+            },
+            'content-creator': {
+                name: 'Content Creator',
+                size: '16%',
+                job: 'Music for content',
+                activation: 'Fast (33% immediate)',
+                topMotivation: 'Need music for project/content (28%)',
+                insights: 'Fastest activation, lowest churn (13% never routine). Clear value prop: copyright-safe music. Built-in repeat usage.',
+                examples: [
+                    '• "Needed music for content and wanted to turn lyrics into music"',
+                    '• "I make PG13 content and needed safe background music"',
+                    '• "Looking for instrumentals that fit my content without needing a license"'
+                ]
+            },
+            'creative-pro': {
+                name: 'Creative Pro',
+                size: '12%',
+                job: 'Work projects',
+                activation: 'Medium (27% immediate)',
+                topMotivation: 'Needed music for work project (27%)',
+                insights: 'Similar to Content Creator but less data. Want workflow enhancement and inspiration. Test with segment economics data.',
+                examples: [
+                    '• "I work in video game industry and use Suno to flesh out game worlds"',
+                    '• "Technology teacher - students write songs about what we studied"',
+                    '• "Initially used for fun, realized it was powerful for marketing videos"'
+                ]
+            },
+            'lyricist': {
+                name: 'Lyricist',
+                size: '17%',
+                job: 'Turn words to music',
+                activation: 'Unknown (needs testing)',
+                topMotivation: 'Turn lyrics/poetry into music (17%)',
+                insights: 'Users who came to turn lyrics into music retain +5pp better. Underexplored opportunity. Clear job: "your words deserve music."',
+                examples: [
+                    '• "During pandemic, couldn\'t say goodbye to father. Poured feelings into lyrics"',
+                    '• "I write poetry and wanted to hear it as songs"',
+                    '• "Had lyrics for years but no way to make them real"'
+                ]
+            },
+            'non-creator': {
+                name: 'Non-Creator',
+                size: '12%',
+                job: 'To be explored',
+                activation: 'Unknown',
+                topMotivation: 'Curious to try something new',
+                insights: 'Doesn\'t usually create music, lyrics, or poetry. High curiosity but unclear job-to-be-done. May need special occasion triggers.',
+                examples: [
+                    '• "I don\'t usually create music but I did for my boyfriend"',
+                    '• "Wanted to see if I could make music with educational lyrics to help me study"',
+                    '• "Made a birthday song—it was a one-time thing but amazing"'
+                ]
+            }
+        };
+
+        document.getElementById('segmentSelect').addEventListener('change', function(e) {
+            const segment = e.target.value;
+            if (segment) {
+                initializeSegment(segment);
+            }
+        });
+
+        document.getElementById('addPersonaBtn').addEventListener('click', addPersona);
+        document.getElementById('clearCanvasBtn').addEventListener('click', clearCanvas);
+        
+        document.getElementById('cancelPersonaBtn').addEventListener('click', () => closeModal('personaModal'));
+        document.getElementById('savePersonaBtn').addEventListener('click', savePersona);
+        
+        document.getElementById('cancelUseCaseBtn').addEventListener('click', () => closeModal('useCaseModal'));
+        document.getElementById('saveUseCaseBtn').addEventListener('click', saveUseCase);
+        
+        document.getElementById('cancelProblemBtn').addEventListener('click', () => closeModal('problemModal'));
+        document.getElementById('saveProblemBtn').addEventListener('click', saveProblem);
+
+        // Event delegation for dynamically created buttons
+        document.getElementById('canvas').addEventListener('click', function(e) {
+            if (e.target.classList.contains('node-btn')) {
+                const nodeId = parseInt(e.target.getAttribute('data-node-id'));
+                const action = e.target.getAttribute('data-action');
+                
+                if (action === 'use-case') {
+                    addUseCase(nodeId);
+                } else if (action === 'problem') {
+                    addProblem(nodeId);
+                }
+                e.stopPropagation();
+            } else if (e.target.classList.contains('delete-btn')) {
+                const nodeId = parseInt(e.target.getAttribute('data-node-id'));
+                deleteNode(nodeId);
+                e.stopPropagation();
+            }
+        });
+
+        function initializeSegment(segment) {
+            if (nodes.length > 0 && !confirm('Starting a new segment will clear your current work. Continue?')) {
+                document.getElementById('segmentSelect').value = '';
+                return;
+            }
+            
+            nodes = [];
+            nodeIdCounter = 0;
+            document.getElementById('canvas').innerHTML = '<svg id="connections" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></svg>';
+            
+            const data = segmentData[segment];
+            const rootNode = {
+                id: nodeIdCounter++,
+                type: 'root',
+                name: data.name,
+                details: data.size + ' of users\\nJob: ' + data.job + '\\nActivation: ' + data.activation,
+                x: 50,
+                y: 50,
+                children: []
+            };
+            nodes.push(rootNode);
+            renderNodes();
+
+            const insightsHtml = '<div class="segment-info"><div class="segment-info-title">' + data.name + ' Insights</div><div class="segment-info-text"><strong>Top Motivation:</strong> ' + data.topMotivation + '<br><strong>Key Insight:</strong> ' + data.insights + '<br><br><strong>Real User Quotes:</strong><br>' + data.examples.join('<br>') + '</div></div>';
+            document.getElementById('segmentInsights').innerHTML = insightsHtml;
+        }
+
+        function addPersona() {
+            if (nodes.length === 0) {
+                alert('Please select a segment first!');
+                return;
+            }
+            
+            currentParent = nodes[0];
+            document.getElementById('personaName').value = '';
+            document.getElementById('personaAge').value = '';
+            document.getElementById('personaExp').value = '';
+            document.getElementById('personaChar').value = '';
+            document.getElementById('personaModal').classList.add('active');
+        }
+
+        function savePersona() {
+            const name = document.getElementById('personaName').value.trim();
+            const age = document.getElementById('personaAge').value.trim();
+            
+            if (!name || !age) {
+                alert('Please fill in at least Name and Age Range');
+                return;
+            }
+
+            const exp = document.getElementById('personaExp').value.trim();
+            const char = document.getElementById('personaChar').value.trim();
+            const details = [age, exp, char].filter(d => d).join(' • ');
+            
+            const newNode = {
+                id: nodeIdCounter++,
+                type: 'persona',
+                name: name,
+                details: details,
+                x: currentParent.x + 250,
+                y: currentParent.y + (currentParent.children.length * 150),
+                parent: currentParent.id,
+                children: []
+            };
+            
+            nodes.push(newNode);
+            currentParent.children.push(newNode.id);
+            renderNodes();
+            closeModal('personaModal');
+        }
+
+        function addUseCase(personaId) {
+            currentParent = nodes.find(n => n.id === personaId);
+            if (!currentParent) {
+                alert('Error: Could not find parent node');
+                return;
+            }
+            document.getElementById('useCaseDesc').value = '';
+            document.getElementById('useCaseModal').classList.add('active');
+        }
+
+        function saveUseCase() {
+            const desc = document.getElementById('useCaseDesc').value.trim();
+            if (!desc) {
+                alert('Please enter a use case description');
+                return;
+            }
+            
+            const newNode = {
+                id: nodeIdCounter++,
+                type: 'use-case',
+                name: desc,
+                details: '',
+                x: currentParent.x + 250,
+                y: currentParent.y + (currentParent.children.length * 120),
+                parent: currentParent.id,
+                children: []
+            };
+            
+            nodes.push(newNode);
+            currentParent.children.push(newNode.id);
+            renderNodes();
+            closeModal('useCaseModal');
+        }
+
+        function addProblem(useCaseId) {
+            currentParent = nodes.find(n => n.id === useCaseId);
+            if (!currentParent) {
+                alert('Error: Could not find parent node');
+                return;
+            }
+            document.getElementById('problemText').value = '';
+            document.getElementById('problemModal').classList.add('active');
+        }
+
+        function saveProblem() {
+            const text = document.getElementById('problemText').value.trim();
+            if (!text) {
+                alert('Please enter a problem description');
+                return;
+            }
+            
+            const newNode = {
+                id: nodeIdCounter++,
+                type: 'problem',
+                name: text,
+                details: '',
+                x: currentParent.x + 250,
+                y: currentParent.y + (currentParent.children.length * 100),
+                parent: currentParent.id,
+                children: []
+            };
+            
+            nodes.push(newNode);
+            currentParent.children.push(newNode.id);
+            renderNodes();
+            closeModal('problemModal');
+        }
+
+        function deleteNode(nodeId) {
+            if (!confirm('Delete this node and all its children?')) return;
+            
+            const node = nodes.find(n => n.id === nodeId);
+            if (!node) {
+                alert('Error: Could not find node to delete');
+                return;
+            }
+            
+            if (node.type === 'root') {
+                alert('Cannot delete the root segment node');
+                return;
+            }
+            
+            const parent = nodes.find(n => n.id === node.parent);
+            if (parent) {
+                parent.children = parent.children.filter(id => id !== nodeId);
+            }
+            
+            const toDelete = [nodeId];
+            while (toDelete.length > 0) {
+                const id = toDelete.pop();
+                const n = nodes.find(node => node.id === id);
+                if (n) {
+                    toDelete.push(...n.children);
+                    nodes = nodes.filter(node => node.id !== id);
+                }
+            }
+            
+            renderNodes();
+        }
+
+        function renderNodes() {
+            const canvas = document.getElementById('canvas');
+            const existingNodes = canvas.querySelectorAll('.node');
+            existingNodes.forEach(n => n.remove());
+            
+            drawConnections();
+            
+            nodes.forEach(node => {
+                const div = document.createElement('div');
+                div.className = 'node ' + node.type;
+                div.style.left = node.x + 'px';
+                div.style.top = node.y + 'px';
+                div.setAttribute('data-id', node.id);
+                
+                let html = '<div class="node-title">' + node.name + '</div>';
+                if (node.details) {
+                    html += '<div class="node-detail">' + node.details.replace(/\\n/g, '<br>') + '</div>';
+                }
+                
+                if (node.type === 'persona') {
+                    html += '<div class="node-actions">';
+                    html += '<button class="node-btn" data-node-id="' + node.id + '" data-action="use-case">+ Use Case</button>';
+                    html += '<button class="delete-btn" data-node-id="' + node.id + '">Delete</button>';
+                    html += '</div>';
+                } else if (node.type === 'use-case') {
+                    html += '<div class="node-actions">';
+                    html += '<button class="node-btn" data-node-id="' + node.id + '" data-action="problem">+ Problem</button>';
+                    html += '<button class="delete-btn" data-node-id="' + node.id + '">Delete</button>';
+                    html += '</div>';
+                } else if (node.type === 'problem') {
+                    html += '<div class="node-actions">';
+                    html += '<button class="delete-btn" data-node-id="' + node.id + '">Delete</button>';
+                    html += '</div>';
+                }
+                
+                div.innerHTML = html;
+                div.addEventListener('mousedown', startDrag);
+                canvas.appendChild(div);
+            });
+        }
+
+        function drawConnections() {
+            const svg = document.getElementById('connections');
+            svg.innerHTML = '';
+            
+            nodes.forEach(node => {
+                if (node.parent !== undefined) {
+                    const parent = nodes.find(n => n.id === node.parent);
+                    if (parent) {
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        const startX = parent.x + 180;
+                        const startY = parent.y + 40;
+                        const endX = node.x;
+                        const endY = node.y + 40;
+                        const midX = (startX + endX) / 2;
+                        
+                        line.setAttribute('d', 'M ' + startX + ' ' + startY + ' C ' + midX + ' ' + startY + ', ' + midX + ' ' + endY + ', ' + endX + ' ' + endY);
+                        line.setAttribute('class', 'connection-line');
+                        svg.appendChild(line);
+                    }
+                }
+            });
+        }
+
+        function startDrag(e) {
+            if (e.target.tagName === 'BUTTON') return;
+            
+            draggedNode = e.currentTarget;
+            const rect = draggedNode.getBoundingClientRect();
+            const canvasRect = document.getElementById('canvas').getBoundingClientRect();
+            
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+            
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+            draggedNode.style.zIndex = 1000;
+        }
+
+        function drag(e) {
+            if (!draggedNode) return;
+            
+            const canvasRect = document.getElementById('canvas').getBoundingClientRect();
+            const x = e.clientX - canvasRect.left - offsetX;
+            const y = e.clientY - canvasRect.top - offsetY;
+            
+            draggedNode.style.left = Math.max(0, x) + 'px';
+            draggedNode.style.top = Math.max(0, y) + 'px';
+            
+            const nodeId = parseInt(draggedNode.getAttribute('data-id'));
+            const node = nodes.find(n => n.id === nodeId);
+            if (node) {
+                node.x = Math.max(0, x);
+                node.y = Math.max(0, y);
+                drawConnections();
+            }
+        }
+
+        function stopDrag() {
+            if (draggedNode) {
+                draggedNode.style.zIndex = '';
+                draggedNode = null;
+            }
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', stopDrag);
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function clearCanvas() {
+            if (nodes.length > 0 && confirm('Clear all your work? This cannot be undone.')) {
+                nodes = [];
+                nodeIdCounter = 0;
+                document.getElementById('canvas').innerHTML = '<svg id="connections" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></svg>';
+                document.getElementById('segmentInsights').innerHTML = '';
+                document.getElementById('segmentSelect').value = '';
+            }
+        }
+
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
